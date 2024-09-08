@@ -58,7 +58,8 @@ th {
 }
 
 .actions button {
-  background-color: #d9534f;
+  margin: 5px;
+  background-color: #5bc0de;
   color: white;
   border: none;
   padding: 5px 10px;
@@ -66,6 +67,18 @@ th {
   border-radius: 3px;
 }
 
-.actions button:hover {
+.actions button.delete {
+  background-color: #d9534f;
+}
+
+.actions button.edit {
+  background-color: #5bc0de;
+}
+
+.actions button:hover.delete {
   background-color: #c9302c;
+}
+
+.actions button:hover.edit {
+  background-color: #31b0d5;
 }

@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", fetchExpenses);
+let expenses = [];
+let editingExpenseId = null;
 
 document.getElementById("expenseForm").addEventListener("submit", function (e) {
   e.preventDefault();
@@ -7,54 +8,68 @@ document.getElementById("expenseForm").addEventListener("submit", function (e) {
   const amount = document.getElementById("amount").value;
   const category = document.getElementById("category").value;
 
-  fetch("http://localhost:3000/expenses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      description: description,
-      amount: amount,
-      category: category,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      alert(data.message);
-      fetchExpenses();
-    });
+  if (editingExpenseId !== null) {
+    // Update existing expense
+    const expenseIndex = expenses.findIndex(
+      (expense) => expense.id === editingExpenseId
+    );
+    expenses[expenseIndex] = {
+      id: editingExpenseId,
+      description,
+      amount,
+      category,
+    };
+    editingExpenseId = null;
+    document.getElementById("expenseForm").querySelector("button").textContent =
+      "Add Expense";
+  } else {
+    // Add new expense
+    const expense = {
+      id: new Date().getTime(),
+      description,
+      amount,
+      category,
+    };
+    expenses.push(expense);
+  }
+
+  document.getElementById("expenseForm").reset();
+  renderExpenses();
 });
 
-function fetchExpenses() {
-  fetch("http://localhost:3000/expenses")
-    .then((response) => response.json())
-    .then((data) => {
-      const tableBody = document.getElementById("expenseTableBody");
-      tableBody.innerHTML = "";
+function renderExpenses() {
+  const tableBody = document.getElementById("expenseTableBody");
+  tableBody.innerHTML = "";
 
-      data.forEach((expense) => {
-        const row = `
-                    <tr>
-                        <td>${expense.description}</td>
-                        <td>${expense.amount}</td>
-                        <td>${expense.category}</td>
-                        <td class="actions">
-                            <button onclick="deleteExpense(${expense.id})">Delete</button>
-                        </td>
-                    </tr>
-                `;
-        tableBody.insertAdjacentHTML("beforeend", row);
-      });
-    });
+  expenses.forEach((expense) => {
+    const row = `
+            <tr>
+                <td>${expense.description}</td>
+                <td>${expense.amount}</td>
+                <td>${expense.category}</td>
+                <td class="actions">
+                    <button class="edit" onclick="editExpense(${expense.id})">Edit</button>
+                    <button class="delete" onclick="deleteExpense(${expense.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    tableBody.insertAdjacentHTML("beforeend", row);
+  });
 }
 
 function deleteExpense(id) {
-  fetch(`http://localhost:3000/expenses/${id}`, {
-    method: "DELETE",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      alert(data.message);
-      fetchExpenses();
-    });
+  expenses = expenses.filter((expense) => expense.id !== id);
+  renderExpenses();
+}
+
+function editExpense(id) {
+  const expense = expenses.find((expense) => expense.id === id);
+
+  document.getElementById("description").value = expense.description;
+  document.getElementById("amount").value = expense.amount;
+  document.getElementById("category").value = expense.category;
+
+  editingExpenseId = id;
+  document.getElementById("expenseForm").querySelector("button").textContent =
+    "Update Expense";
 }
